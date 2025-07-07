@@ -3,7 +3,10 @@ import os
 from flask import Flask, render_template, Response, request
 import RPi.GPIO as GPIO
 
-from camera_pi2 import Camera
+# from camera_pi2 import Camera
+from picamera2 import Picamera2, Preview
+import cv2
+import time
 
 
 # GPIO setup
@@ -78,7 +81,10 @@ def stop_motors():
 
 
 app = Flask(__name__)
-
+picam2 = Picamera2()
+time.sleep(1)
+picam2.configure(picam2.create_video_configuration(main={"size":(640, 480)}))
+picam2.start()
 
 @app.route('/')
 def index():
@@ -86,18 +92,22 @@ def index():
     return render_template('index.html')
 
 
-def gen(camera):
+def gen_frames():
+    
     """Video streaming generator function."""
-    yield b'--frame\r\n'
+    
     while True:
-        frame = camera.get_frame()
-        yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
+        frame = picam2.capture_array()
+        ret, buffer = cv2.imencode(".jpg", frame)
+        frame = buffer.tobytes()
+        yield(b'--frame\r\n'
+              b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 @app.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
-    return Response(gen(Camera()),
+    return Response(gen_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/control', methods=['POST'])
