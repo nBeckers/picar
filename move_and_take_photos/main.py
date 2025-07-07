@@ -1,7 +1,11 @@
+from adafruit_pca9685 import PCA9685
+from adafruit_motor import servo
 from importlib import import_module
 import os
 from flask import Flask, render_template, Response, request
 import RPi.GPIO as GPIO
+from board import SCL, SDA
+import busio
 
 # from camera_pi2 import Camera
 from picamera2 import Picamera2, Preview
@@ -17,6 +21,7 @@ Motor_A_Pin2 = 21
 Motor_B_Pin1 = 27
 Motor_B_Pin2 = 18
 
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(Motor_A_EN, GPIO.OUT)
 GPIO.setup(Motor_B_EN, GPIO.OUT)
@@ -25,17 +30,35 @@ GPIO.setup(Motor_A_Pin2, GPIO.OUT)
 GPIO.setup(Motor_B_Pin1, GPIO.OUT)
 GPIO.setup(Motor_B_Pin2, GPIO.OUT)
 
+
 pwm_left = GPIO.PWM(Motor_B_EN, 1000)
 pwm_right = GPIO.PWM(Motor_A_EN, 1000)
 pwm_left.start(0)
 pwm_right.start(0)
 
 
+i2c = busio.I2C(SCL, SDA)
+pwm_servo = PCA9685(i2c, address=0x40)
+pwm_servo.frequency = 50
+
 def cleanup_gpio():
+    pwm_servo.deinit()
     pwm_left.stop()
     pwm_right.stop()
     GPIO.cleanup()
 
+
+
+def set_servo_angle(channel, angle):
+    
+    servo_angle = servo.Servo(
+        pwm_servo.channels[channel],
+        min_pulse=500,
+        max_pulse=2400,
+        actuation_range=180
+    )
+    servo_angle.angle = angle
+    
 
 # Movement functions
 def move_forward():
@@ -55,21 +78,32 @@ def move_backward():
     GPIO.output(Motor_A_Pin1, GPIO.LOW)
     GPIO.output(Motor_A_Pin2, GPIO.HIGH)
 
+
+def no_turn():
+    set_servo_angle(0, 90)
+
+
 def turn_left():
+    set_servo_angle(0, 135)
+    '''
     pwm_left.ChangeDutyCycle(60)
     pwm_right.ChangeDutyCycle(80)
     GPIO.output(Motor_B_Pin1, GPIO.HIGH)
     GPIO.output(Motor_B_Pin2, GPIO.LOW)
     GPIO.output(Motor_A_Pin1, GPIO.LOW)
     GPIO.output(Motor_A_Pin2, GPIO.HIGH)
+    '''
 
 def turn_right():
+    set_servo_angle(0, 45)
+    '''
     pwm_left.ChangeDutyCycle(80)
     pwm_right.ChangeDutyCycle(60)
     GPIO.output(Motor_B_Pin1, GPIO.LOW)
     GPIO.output(Motor_B_Pin2, GPIO.HIGH)
     GPIO.output(Motor_A_Pin1, GPIO.HIGH)
     GPIO.output(Motor_A_Pin2, GPIO.LOW)
+    '''
 
 def stop_motors():
     pwm_left.ChangeDutyCycle(0)
@@ -85,6 +119,7 @@ picam2 = Picamera2()
 time.sleep(1)
 picam2.configure(picam2.create_video_configuration(main={"size":(640, 480)}))
 picam2.start()
+time.sleep(2)
 
 @app.route('/')
 def index():
@@ -123,6 +158,8 @@ def control():
         turn_right()
     elif command == 'stop':
         stop_motors()
+    elif command == 'no_turn':
+        no_turn()
     return '', 204
 
 
@@ -130,6 +167,6 @@ def control():
 if __name__ == '__main__':
     try:
         print("HI")
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=False, host='0.0.0.0', port=5000)
     finally:
         cleanup_gpio()

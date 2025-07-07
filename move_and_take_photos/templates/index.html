@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Robot Control</title>
+        <script>
+            function sendCommand(command) {
+                fetch('/control', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'command=' + command
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <h1>Control the Robot</h1>
+        <button onmousedown="sendCommand('forward')" onmouseup="sendCommand('stop')">Forward</button>
+        <button onmousedown="sendCommand('backward')" onmouseup="sendCommand('stop')">Backward</button>
+        <button onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')">Left</button>
+        <button onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">Right</button>
+        <button onmousedown="sendCommand('no_turn')" onmouseup="sendCommand('stop')">Straight</button>
+        <button onclick="sendCommand('stop')">Stop</button>
+        <img src="{{ url_for('video_feed') }}" width="640" height="480">
+    </body>
+</html>
+
+
