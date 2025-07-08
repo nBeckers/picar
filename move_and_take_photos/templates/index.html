@@ -27,17 +27,16 @@
         </a>
         <img src="{{ url_for('video_feed') }}" width="640" height="480">
         
-        <input type="range" id="volume" name="volume" min="0" max="100" value="50" step="1">
-        <span id="volumeValue">50</span>
 
-        <script>
-            const slider = document.getElementById("volume");
-            const output = document.getElementById("volumeValue");
+        <form method="POST">
+            <label for="volume">Volume:</label>
+            <input type="range" id="volume" name="volume" min="0" max="180" value="{{ slider_value }}" step="1"
+                oninput="volumeOutput.value = volume.value">
+            <output name="volumeOutput" id="volumeOutput">{{ slider_value }}</output>
+            <br><br>
+            <button type="submit">Submit</button>
+        </form>
 
-            slider.oninput = function() {
-                output.textContent = this.value;
-            };
-        </script>
 
     </body>
 </html>

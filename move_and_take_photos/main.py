@@ -122,10 +122,15 @@ picam2.configure(picam2.create_video_configuration(main={"size":(640, 480)}))
 picam2.start()
 time.sleep(2)
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+
+    slider_value = 90
+    if request.method == 'POST':
+        slider_value = request.form.get('Volume', 90)
+
     """Video streaming home page."""
-    return render_template('index.html')
+    return render_template('index.html', slider_value=slider_value)
 
 
 
