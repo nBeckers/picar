@@ -29,11 +29,28 @@
         
 
         <form method="POST">
-            <label for="volume">Volume:</label>
-            <input type="range" id="volume" name="volume" min="0" max="180" value="{{ slider_value }}" step="1"
-                oninput="volumeOutput.value = volume.value">
-            <output name="volumeOutput" id="volumeOutput">{{ slider_value }}</output>
+            <label for="head">Kopf:</label>
+            <input type="range" id="head" name="head" min="0" max="180" value="{{ slider_head_value }}" step="1"
+                oninput="headOutput.value = head.value">
+            <output name="headOutput" id="headOutput">{{ slider_head_value }}</output>
             <br><br>
+            <label for="arm1">Arm 1:</label>
+            <input type="range" id="arm1" name="arm1" min="0" max="180" value="{{ slider_arm1_value }}" step="1"
+                oninput="arm1Output.value = arm1.value">
+            <output name="arm1Output" id="arm1Output">{{ slider_arm1_value }}</output>
+            <br><br>
+
+            <label for="arm2">Arm 2:</label>
+            <input type="range" id="arm2" name="arm2" min="0" max="180" value="{{ slider_arm2_value }}" step="1"
+                oninput="arm2Output.value = arm2.value">
+            <output name="arm2Output" id="arm2Output">{{ slider_arm2_value }}</output>
+            <br><br>
+            <label for="grabber">Greifer:</label>
+            <input type="range" id="grabber" name="grabber" min="0" max="180" value="{{ slider_grabber_value }}" step="1"
+                oninput="grabberOutput.value = grabber.value">
+            <output name="grabberOutput" id="grabberOutput">{{ slider_grabber_value }}</output>
+            <br><br>
+
             <button type="submit">Submit</button>
         </form>
 

@@ -2,7 +2,7 @@ from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 from importlib import import_module
 import os
-from flask import Flask, render_template, Response, request, send_from_directory
+from flask import Flask, render_template, Response, request, send_from_directory, jsonify
 import RPi.GPIO as GPIO
 from board import SCL, SDA
 import busio
@@ -122,17 +122,26 @@ picam2.configure(picam2.create_video_configuration(main={"size":(640, 480)}))
 picam2.start()
 time.sleep(2)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-
-    slider_value = 90
-    if request.method == 'POST':
-        slider_value = request.form.get('Volume', 90)
-
     """Video streaming home page."""
-    return render_template('index.html', slider_value=slider_value)
+    return render_template('index.html')
 
 
+
+@app.route('/update_arm_servos', methods=['POST'])
+def update_arm_servos():
+    new_head_value = request.form.get('head_value')
+    new_arm1_value = request.form.get('arm1_value')
+    new_arm2_value = request.form.get('arm2_value')
+    new_grabber_value = request.form.get('grabber_value')
+
+    set_servo_angle(1, new_head_value)
+    set_servo_angle(2, new_arm1_value)
+    set_servo_angle(3, new_arm2_value)
+    set_servo_angle(4, new_grabber_value)
+
+    return jsonify({"new_head_value": new_head_value, "new_arm1_value": new_arm1_value, "new_arm2_value": new_arm2_value, "new_grabber_value": new_grabber_value})
 
 @app.route('/take_photo')
 def take_photo():
