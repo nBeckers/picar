@@ -136,13 +136,13 @@ def update_arm_servo():
     print(f"Slider: {slider}, Value: {value}")
 
     if slider == "1":
-        set_servo_angle(1, value)
+        set_servo_angle(1, int(value))
     elif slider == "2":
-        set_servo_angle(2, value)
+        set_servo_angle(2, int(value))
     elif slider == "3":
-        set_servo_angle(3, value)
+        set_servo_angle(3, int(value))
     elif slider == "4":
-        set_servo_angle(4, value)
+        set_servo_angle(4, int(value))
 
     return jsonify({'status': 'success', 'new_value': value})
 
