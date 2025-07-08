@@ -129,19 +129,22 @@ def index():
 
 
 
-@app.route('/update_arm_servos', methods=['POST'])
-def update_arm_servos():
-    new_head_value = request.form.get('head_value')
-    new_arm1_value = request.form.get('arm1_value')
-    new_arm2_value = request.form.get('arm2_value')
-    new_grabber_value = request.form.get('grabber_value')
+@app.route('/update_arm_servo', methods=['POST'])
+def update_arm_servo():
+    slider = request.form.get('slider')
+    value = request.form.get('value')
+    print(f"Slider: {slider}, Value: {value}")
 
-    set_servo_angle(1, new_head_value)
-    set_servo_angle(2, new_arm1_value)
-    set_servo_angle(3, new_arm2_value)
-    set_servo_angle(4, new_grabber_value)
+    if slider == "1":
+        set_servo_angle(1, value)
+    elif slider == "2":
+        set_servo_angle(2, value)
+    elif slider == "3":
+        set_servo_angle(3, value)
+    elif slider == "4":
+        set_servo_angle(4, value)
 
-    return jsonify({"new_head_value": new_head_value, "new_arm1_value": new_arm1_value, "new_arm2_value": new_arm2_value, "new_grabber_value": new_grabber_value})
+    return jsonify({'status': 'success', 'new_value': value})
 
 @app.route('/take_photo')
 def take_photo():

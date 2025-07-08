@@ -12,7 +12,38 @@
                     body: 'command=' + command
                 });
             }
+
+            function sendSliderValue(slider, value) {
+                fetch('/update_arm_servo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'slider=' + encodeURIComponent(slider) + '&value=' + encodeURIComponent(value)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(slider === "1") {
+                        document.getElementById('outputHead').textContent = data.new_value
+                    }
+                    else if(slider === "2"){
+                        document.getElementById('outputArm1').textContent = data.new_value
+
+                    }
+                    else if(slider === "3"){
+                         document.getElementById('outputArm2').textContent = data.new_value
+                    }
+                    else if(slider === "4"){
+                         document.getElementById('outputGrabber').textContent = data.new_value
+                    }
+
+
+                });
+            }
+
+
         </script>
+
     </head>
     <body>
         <h1>Control the Robot</h1>
@@ -25,34 +56,39 @@
         <a href="/take_photo">
             <button>Download Photo</button>
         </a>
+
+
+
+        <label for="sliderHead">Kopf Servo:</label>
+        <input type="range" id="sliderHead" name="sliderHead" min="0" max="180" value="90" step="1"
+            oninput="sendSliderValue(1, document.getElementById(`sliderHead`).value)">
+        <span id="outputHead">50</span>
+        <br><br>
+
+        <label for="sliderArm1">Arm 1 Servo:</label>
+        <input type="range" id="sliderArm1" name="sliderArm1" min="0" max="180" value="90" step="1"
+            oninput="sendSliderValue(2, document.getElementById(`sliderArm1`).value)">
+        <span id="outputArm1">50</span>
+        <br><br>
+
+        <label for="sliderArm2">Arm 2 Servo:</label>
+        <input type="range" id="sliderArm2" name="sliderArm2" min="0" max="180" value="90" step="1"
+            oninput="sendSliderValue(3, document.getElementById(`sliderArm2`).value)">
+        <span id="outputArm2">50</span>
+        <br><br>
+
+        <label for="sliderGrabber">Greifer Servo:</label>
+        <input type="range" id="sliderGrabber" name="sliderGrabber" min="0" max="180" value="90" step="1"
+            oninput="sendSliderValue(4, document.getElementById(`sliderGrabber`).value)">
+        <span id="outputGrabber">50</span>
+        <br><br>
+
+
+
         <img src="{{ url_for('video_feed') }}" width="640" height="480">
         
 
-        <form method="POST">
-            <label for="head">Kopf:</label>
-            <input type="range" id="head" name="head" min="0" max="180" value="{{ slider_head_value }}" step="1"
-                oninput="headOutput.value = head.value">
-            <output name="headOutput" id="headOutput">{{ slider_head_value }}</output>
-            <br><br>
-            <label for="arm1">Arm 1:</label>
-            <input type="range" id="arm1" name="arm1" min="0" max="180" value="{{ slider_arm1_value }}" step="1"
-                oninput="arm1Output.value = arm1.value">
-            <output name="arm1Output" id="arm1Output">{{ slider_arm1_value }}</output>
-            <br><br>
 
-            <label for="arm2">Arm 2:</label>
-            <input type="range" id="arm2" name="arm2" min="0" max="180" value="{{ slider_arm2_value }}" step="1"
-                oninput="arm2Output.value = arm2.value">
-            <output name="arm2Output" id="arm2Output">{{ slider_arm2_value }}</output>
-            <br><br>
-            <label for="grabber">Greifer:</label>
-            <input type="range" id="grabber" name="grabber" min="0" max="180" value="{{ slider_grabber_value }}" step="1"
-                oninput="grabberOutput.value = grabber.value">
-            <output name="grabberOutput" id="grabberOutput">{{ slider_grabber_value }}</output>
-            <br><br>
-
-            <button type="submit">Submit</button>
-        </form>
 
 
     </body>
