@@ -2,7 +2,7 @@ from adafruit_pca9685 import PCA9685
 from adafruit_motor import servo
 from importlib import import_module
 import os
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, send_from_directory
 import RPi.GPIO as GPIO
 from board import SCL, SDA
 import busio
@@ -125,6 +125,20 @@ time.sleep(2)
 def index():
     """Video streaming home page."""
     return render_template('index.html')
+
+
+
+@app.route('/take_photo')
+def take_photo():
+    # Create a unique filename based on timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    image_path = f"/tmp/capture_{timestamp}.jpg"
+    
+    # Capture and save the image
+    picam2.capture_file(image_path)
+    
+    # Return the image file to the user
+    return send_file(image_path, mimetype='image/jpeg')
 
 
 def gen_frames():

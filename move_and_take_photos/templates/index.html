@@ -22,6 +22,7 @@
         <button onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">Right</button>
         <button onmousedown="sendCommand('no_turn')" onmouseup="sendCommand('stop')">Straight</button>
         <button onclick="sendCommand('stop')">Stop</button>
+        <button onclick="sendCommand('take_photo')">Photo</button>
         <img src="{{ url_for('video_feed') }}" width="640" height="480">
     </body>
 </html>
