@@ -22,8 +22,23 @@
         <button onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')">Right</button>
         <button onmousedown="sendCommand('no_turn')" onmouseup="sendCommand('stop')">Straight</button>
         <button onclick="sendCommand('stop')">Stop</button>
-        <button onclick="sendCommand('take_photo')">Photo</button>
+        <a href="/take_photo">
+            <button>Download Photo</button>
+        </a>
         <img src="{{ url_for('video_feed') }}" width="640" height="480">
+        
+        <input type="range" id="volume" name="volume" min="0" max="100" value="50" step="1">
+        <span id="volumeValue">50</span>
+
+        <script>
+            const slider = document.getElementById("volume");
+            const output = document.getElementById("volumeValue");
+
+            slider.oninput = function() {
+                output.textContent = this.value;
+            };
+        </script>
+
     </body>
 </html>
 

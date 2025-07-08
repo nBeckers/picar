@@ -11,6 +11,7 @@ import busio
 from picamera2 import Picamera2, Preview
 import cv2
 import time
+from datetime import datetime
 
 
 # GPIO setup
@@ -84,7 +85,7 @@ def no_turn():
 
 
 def turn_left():
-    set_servo_angle(0, 135)
+    set_servo_angle(1, 135)
     '''
     pwm_left.ChangeDutyCycle(60)
     pwm_right.ChangeDutyCycle(80)
@@ -132,13 +133,14 @@ def index():
 def take_photo():
     # Create a unique filename based on timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    image_path = f"/tmp/capture_{timestamp}.jpg"
+    filename = f"photo_{timestamp}.jpg"
+    filepath = os.path.join("./photos", filename)
     
     # Capture and save the image
-    picam2.capture_file(image_path)
+    picam2.capture_file(filepath)
     
     # Return the image file to the user
-    return send_file(image_path, mimetype='image/jpeg')
+    return send_from_directory("./photos", filename, as_attachment=True, download_name=filename)
 
 
 def gen_frames():
@@ -180,7 +182,7 @@ def control():
 
 if __name__ == '__main__':
     try:
-        print("HI")
+        os.makedirs("./photos", exist_ok=True)
         app.run(debug=False, host='0.0.0.0', port=5000)
     finally:
         cleanup_gpio()
