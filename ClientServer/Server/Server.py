@@ -1,9 +1,11 @@
-
+import os
 import socket
 import threading
 
+
 should_exit = False
 connected_threads = []
+IMAGE_PATH = "static/latest.jpg"
 
 
 # Function to handle client connections.
@@ -34,6 +36,43 @@ def handle_client(client_socket, client_address):
     client_socket.close()
 
 
+def image_server():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('0.0.0.0', 8001))
+        s.listen()
+        print(f"🖼️ Bild-Server läuft auf Port 8001")
+        while not should_exit:
+            conn, addr = s.accept()
+            threading.Thread(target=receive_image, args=(conn,), daemon=True).start()
+
+
+def receive_image(conn):
+    try:
+        # 4 Bytes = Länge des Bildes
+        length_bytes = conn.recv(4)
+        if not length_bytes:
+            return False
+        length = int.from_bytes(length_bytes, byteorder='big')
+
+        # Bilddaten empfangen
+        image_data = b''
+        while len(image_data) < length:
+            packet = conn.recv(length - len(image_data))
+            if not packet:
+                return False
+            image_data += packet
+
+        # Bild speichern
+        with open(IMAGE_PATH, 'wb') as f:
+            f.write(image_data)
+        print(f"📷 Bild gespeichert ({length} Bytes)")
+        return True
+    except Exception as e:
+        print(f"Error receiving image: {e}")
+        return False
+
+
+
 
 def send_message(client_socket):
     global should_exit
@@ -56,6 +95,7 @@ if __name__ == '__main__':
     # AF_INET indicates the IPv4 address family, and SOCK_STREAM indicates the TCP protocol.
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+
     # Bind the socket to all available network interfaces and set the port number to 8000.
     server_address = ('0.0.0.0', 8000)
     server_socket.bind(server_address)
@@ -67,21 +107,26 @@ if __name__ == '__main__':
     print("Server has started and is listening for connections...")
 
 
+
     while not should_exit:
         try:
+
             client_socket, client_address = server_socket.accept()
             print(f"Accepted connection from {client_address}")
             # Start the thread that receives client messages
-            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address))
-            client_thread.start()
+            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address)).start()
             connected_threads.append(client_thread)
             # Start the thread that sends messages to the client
-            send_thread = threading.Thread(target=send_message, args=(client_socket,))
-            send_thread.start()
+            send_thread = threading.Thread(target=send_message, args=(client_socket,)).start()
             connected_threads.append(send_thread)
+
+            image_thread = threading.Thread(target=image_server, daemon=True).start()
+            connected_threads.append(image_thread)
+
         except socket.timeout:
             continue
         except KeyboardInterrupt:
+            should_exit = True
             print("shutting down")
         except Exception as e:
             if should_exit:
@@ -97,4 +142,3 @@ if __name__ == '__main__':
         thread.join()
     print("Server has stopped.")
 
-    

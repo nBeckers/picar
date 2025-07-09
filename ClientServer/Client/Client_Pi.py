@@ -3,7 +3,7 @@
 # Website     : www.Adeept.com
 # Author      : Adeept
 # Date        : 2025/03/22
-
+import io
 import socket
 import sys
 import threading
@@ -45,6 +45,9 @@ pwm_right.start(0)
 i2c = busio.I2C(SCL, SDA)
 pwm_servo = PCA9685(i2c, address=0x40)
 pwm_servo.frequency = 50
+
+message_port = 8000
+image_port = 8001
 
 servos = [servo.Servo(
     pwm_servo.channels[i],
@@ -95,7 +98,7 @@ def no_turn():
 
 
 def turn_left():
-    set_servo_angle(1, 135)
+    set_servo_angle(0, 135)
     '''
     pwm_left.ChangeDutyCycle(60)
     pwm_right.ChangeDutyCycle(80)
@@ -150,28 +153,113 @@ def receive_message(client_socket):
 
 
 
-def handle_command(command):
+def handle_command(cmd):
 
-    if command == 'forward':
+    command = cmd.split(" ")
+
+    if command[0] == 'forward':
         move_forward()
-    elif command == 'backward':
+        timer = threading.Timer(2, stop_motors)
+        timer.start()
+
+    elif command[0] == 'backward':
         move_backward()
-    elif command == 'left':
+        timer = threading.Timer(2, stop_motors)
+        timer.start()
+
+    elif command[0] == 'left':
         turn_left()
-    elif command == 'right':
+
+    elif command[0] == 'right':
         turn_right()
-    elif command == 'stop':
+
+    elif command[0] == 'stop':
         stop_motors()
-    elif command == 'no_turn':
+
+    elif command[0] == 'straight':
         no_turn()
 
+    elif command[0] == "head":
+        try:
+            angle = int(command[1])
+            if angle < 0 or angle > 180:
+                print("angle must be between 0 and 180 degrees.")
+            else:
+                set_servo_angle(1, angle)
+
+        except ValueError:
+            print("Angle must be an integer.")
+        except Exception as e:
+            print(f"Error handling command: {e}")
+
+    elif command[0] == "arm1":
+        try:
+            angle = int(command[1])
+            if angle < 0 or angle > 180:
+                print("angle must be between 0 and 180 degrees.")
+            else:
+                set_servo_angle(2, angle)
+
+        except ValueError:
+            print("Angle must be an integer.")
+        except Exception as e:
+            print(f"Error handling command: {e}")
+
+    elif command[0] == "arm2":
+        try:
+            angle = int(command[1])
+            if angle < 0 or angle > 180:
+                print("angle must be between 0 and 180 degrees.")
+            else:
+                set_servo_angle(3, angle)
+
+        except ValueError:
+            print("Angle must be an integer.")
+        except Exception as e:
+            print(f"Error handling command: {e}")
+
+    elif command[0] == "grabber":
+        try:
+            angle = int(command[1])
+            if angle < 0 or angle > 180:
+                print("angle must be between 0 and 180 degrees.")
+            else:
+                set_servo_angle(4, angle)
+
+        except ValueError:
+            print("Angle must be an integer.")
+        except Exception as e:
+            print(f"Error handling command: {e}")
 
 
-picam2 = Picamera2()
-time.sleep(1)
-picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
-picam2.start()
-time.sleep(2)
+
+def capture_image():
+    image_data = io.BytesIO()
+    picam2.capture_file(image_data, format='jpeg')
+    return image_data.getvalue()
+
+
+def send_image(server_ip):
+
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((server_ip, image_port))
+
+            while True:
+                image_bytes = capture_image()
+
+                # Sende zuerst die Länge des Bildes (4 Byte, big endian)
+                s.send(len(image_bytes).to_bytes(4, byteorder='big'))
+                # Dann das Bild selbst
+                s.sendall(image_bytes)
+                time.sleep(2)
+
+    except Exception as e:
+        print(f"Error sending image: {e}")
+
+
+
 
 
 
@@ -181,17 +269,29 @@ if __name__ == '__main__':
         print("Please enter the server's IP address when running, for example: python3 client.py 192.168.1.31")
         sys.exit(1)
 
+
+    picam2 = Picamera2()
+    time.sleep(1)
+    # picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
+    picam2.configure(picam2.create_still_configuration())
+    picam2.start()
+    time.sleep(2)
+
+
     server_ip = sys.argv[1]
-    server_port = 8000
+
 
     # Create a TCP - based socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         # Connect to the server
-        client_socket.connect((server_ip, server_port))
+        client_socket.connect((server_ip, message_port))
         receive_thread = threading.Thread(target=receive_message, args=(client_socket,))
         receive_thread.start()
+
+        threading.Thread(target=send_image, args=(server_ip,), daemon=True).start()
+
         while True:
             # Get input from the keyboard
             message = input("Please enter the message to send (type 'exit' to quit): ")
