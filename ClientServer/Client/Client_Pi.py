@@ -159,12 +159,12 @@ def handle_command(cmd):
 
     if command[0] == 'forward':
         move_forward()
-        timer = threading.Timer(2, stop_motors)
+        timer = threading.Timer(1, stop_motors)
         timer.start()
 
     elif command[0] == 'backward':
         move_backward()
-        timer = threading.Timer(2, stop_motors)
+        timer = threading.Timer(1, stop_motors)
         timer.start()
 
     elif command[0] == 'left':
