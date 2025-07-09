@@ -13,32 +13,38 @@
                 });
             }
 
+            let lastSent = 0;
+
             function sendSliderValue(slider, value) {
-                fetch('/update_arm_servo', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: 'slider=' + encodeURIComponent(slider) + '&value=' + encodeURIComponent(value)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if(slider === "1") {
-                        document.getElementById('outputHead').textContent = data.new_value
-                    }
-                    else if(slider === "2"){
-                        document.getElementById('outputArm1').textContent = data.new_value
+                const now = Date.now();
+                if(now - lastSent >= 2000){
+                    lastSent = now;
+                    fetch('/update_arm_servo', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'slider=' + encodeURIComponent(slider) + '&value=' + encodeURIComponent(value)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(slider === 1) {
+                            document.getElementById('outputHead').textContent = data.new_value
+                        }
+                        else if(slider === 2){
+                            document.getElementById('outputArm1').textContent = data.new_value
 
-                    }
-                    else if(slider === "3"){
-                         document.getElementById('outputArm2').textContent = data.new_value
-                    }
-                    else if(slider === "4"){
-                         document.getElementById('outputGrabber').textContent = data.new_value
-                    }
+                        }
+                        else if(slider === 3){
+                            document.getElementById('outputArm2').textContent = data.new_value
+                        }
+                        else if(slider === 4){
+                            document.getElementById('outputGrabber').textContent = data.new_value
+                        }
 
 
-                });
+                    });
+                }
             }
 
 
@@ -58,7 +64,7 @@
         </a>
 
 
-
+        <br><br>
         <label for="sliderHead">Kopf Servo:</label>
         <input type="range" id="sliderHead" name="sliderHead" min="0" max="180" value="90" step="1"
             oninput="sendSliderValue(1, document.getElementById(`sliderHead`).value)">

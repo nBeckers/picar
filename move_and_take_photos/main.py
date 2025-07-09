@@ -42,6 +42,12 @@ i2c = busio.I2C(SCL, SDA)
 pwm_servo = PCA9685(i2c, address=0x40)
 pwm_servo.frequency = 50
 
+servos = [servo.Servo(
+    pwm_servo.channels[i], 
+    min_pulse=500, 
+    max_pulse=2400) for i in range(5)]
+
+
 def cleanup_gpio():
     pwm_servo.deinit()
     pwm_left.stop()
@@ -49,16 +55,14 @@ def cleanup_gpio():
     GPIO.cleanup()
 
 
-
 def set_servo_angle(channel, angle):
     
-    servo_angle = servo.Servo(
-        pwm_servo.channels[channel],
-        min_pulse=500,
-        max_pulse=2400,
-        actuation_range=180
-    )
-    servo_angle.angle = angle
+    if 0 <= angle <= 180:
+        servos[channel].angle = angle
+    else:
+        print("Angle must be between 0 and 180 degrees.")
+
+    time.sleep(2)
     
 
 # Movement functions
@@ -144,7 +148,7 @@ def update_arm_servo():
     elif slider == "4":
         set_servo_angle(4, int(value))
 
-    return jsonify({'status': 'success', 'new_value': value})
+    return jsonify({'status': 'success', 'slider': slider, 'new_value': value})
 
 @app.route('/take_photo')
 def take_photo():
