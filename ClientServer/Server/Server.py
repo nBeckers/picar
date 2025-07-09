@@ -114,13 +114,16 @@ if __name__ == '__main__':
             client_socket, client_address = server_socket.accept()
             print(f"Accepted connection from {client_address}")
             # Start the thread that receives client messages
-            client_thread = threading.Thread(target=handle_client, args=(client_socket, client_address)).start()
+            client_thread = (threading.Thread(target=handle_client, args=(client_socket, client_address)))
+            client_thread.start()
             connected_threads.append(client_thread)
             # Start the thread that sends messages to the client
-            send_thread = threading.Thread(target=send_message, args=(client_socket,)).start()
+            send_thread = (threading.Thread(target=send_message, args=(client_socket,)))
+            send_thread.start()
             connected_threads.append(send_thread)
 
-            image_thread = threading.Thread(target=image_server, daemon=True).start()
+            image_thread = threading.Thread(target=image_server, daemon=True)
+            image_thread.start()
             connected_threads.append(image_thread)
 
         except socket.timeout:
