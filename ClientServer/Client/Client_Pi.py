@@ -253,6 +253,7 @@ def send_image(server_ip):
                 s.send(len(image_bytes).to_bytes(4, byteorder='big'))
                 # Dann das Bild selbst
                 s.sendall(image_bytes)
+                print("image sent")
                 time.sleep(2)
 
     except Exception as e:
